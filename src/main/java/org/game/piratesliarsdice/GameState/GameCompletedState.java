@@ -13,9 +13,9 @@ public class GameCompletedState implements GameState {
 
         output.append("\n\n");
         output.append("%s vinner, han lyver aldri \n".formatted(game.determineWinner().getName()));
-        output.append("Wills siste bud: %s \n\n".formatted(game.getLastBid()));
-        output.append(game.getPlayers().get(0));
-        output.append(game.getPlayers().get(1));
+        output.append("%s's siste bud: %s \n\n".formatted(game.getPlayer2().getName(), game.getLastBid()));
+        output.append(game.getPlayer1());
+        output.append(game.getPlayer2());
 
         System.out.println(output);
 

@@ -1,69 +1,61 @@
 package org.game.piratesliarsdice;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.game.piratesliarsdice.GameState.GameInitState;
+import org.game.piratesliarsdice.GameState.GamePlayingState;
 import org.game.piratesliarsdice.GameState.GameState;
-import java.io.IOException;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Random;
 
 @Getter
-@Setter
+@RequiredArgsConstructor
 public class Game implements GameState {
+    private final List<Die> dice;
+    private final Player player1;
+    private final Player player2;
+    @Setter
     private GameState state;
-    private List<Dice> dices;
-    private List<Player> players = new ArrayList<>();
+    @Setter
+    private Player activePlayer;
+    @Setter
     private int lastBid = 0;
-    private int currentPlayerIndex = 1;
+    @Setter
+    private Boolean hasLiar = false;
+    @Setter
     private Boolean isGameOver = false;
 
-    public Game(String diceUrl) {
-        this.setState(new GameInitState(this, diceUrl));
-    }
+    public void start() {
+        this.state = new GamePlayingState(this);
 
-    public void start() throws IOException {
         while (!this.isGameOver) {
             this.processing();
         }
     }
 
-    public void addPlayer(String name) {
-        if (this.players.size() == 2) {
-            throw new IllegalStateException("Can't add more than two player to the game");
-        }
-
-        this.players.add(new Player(name));
+    public Die pickOutDice() {
+        return dice.get(new Random().nextInt(49 - 0) + 0);
     }
 
-    public Dice pickOutDice() {
-        return dices.get(new Random().nextInt(49 - 0) + 0);
-    }
-
-    public int getHighestDiceValue(Dice dice1, Dice dice2) {
-        int dice1Value = dice1.getValue();
-        int dice2Value = dice2.getValue();
+    public int getHighestDiceValue(Die die1, Die die2) {
+        int dice1Value = die1.getValue();
+        int dice2Value = die2.getValue();
 
         return dice1Value > dice2Value ?
                 Integer.parseInt(dice1Value + Integer.toString(dice2Value))
                 : Integer.parseInt(dice2Value + Integer.toString(dice1Value));
     }
 
-    public int getNextPlayerIndex() {
-        return this.currentPlayerIndex == 0 ? 1 : 0;
-    }
+    public Player nextPlayer() {
+        activePlayer = activePlayer == null || activePlayer.getClass() == Player2.class ? player1 : player2;
 
-    public Player setCurrentPlayer() {
-        int playerIndex = this.getNextPlayerIndex();
-        this.setCurrentPlayerIndex(playerIndex);
-
-        return this.getPlayers().get(playerIndex);
+        return activePlayer;
     }
 
     public Player determineWinner() {
-        Player winner = players.get(currentPlayerIndex);
-        Player nextPlayer = players.get(this.getNextPlayerIndex());
+        Player winner = this.activePlayer;
+        Player nextPlayer = this.nextPlayer();
 
         if (nextPlayer.getLastBid() == this.getLastBid()) {
             winner = nextPlayer;
@@ -73,7 +65,7 @@ public class Game implements GameState {
     }
 
     @Override
-    public void processing() throws IOException {
+    public void processing() {
         this.state.processing();
     }
 }
